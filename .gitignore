@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Advent of code inputs
-*/input.txt
+*/*input.txt
