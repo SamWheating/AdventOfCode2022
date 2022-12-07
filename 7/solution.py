@@ -1,7 +1,5 @@
 from typing import Dict, Any, List, Union
 
-from pprint import pprint
-
 with open("input.txt") as ifp:
     rows = ifp.read().splitlines()
 
@@ -37,66 +35,35 @@ def parse(rows: List[str]) -> Dict[Any, Any]:
 
     return fs
 
-def part1(fs: Dict[Any, Any]) -> int:
-    """Given a dict describing the fs, return the
-    sum of all Directories under 100000B total size"""
 
-    # flat map of fullpath: total size
-    dir_sizes = {}
+def get_directory_sizes(fs: Dict[str, Any]) -> Dict[str, int]:
+    """DFS navigate the filesystem and get the expanded size of any directories"""
 
-    def total_size(cwd, dir: Union[Dict[Any, Any], int]):
+    dir_sizes = {} # all of the visited directories
+
+    def dfs(prefix: str, node: Union[int, Dict[str, Any]]):
         
-        if isinstance(dir, int):
-            return dir
-        
-        size = 0
-        for subdir in dir.keys():
-            size += total_size(cwd + "/" + subdir, dir[subdir])
+        if isinstance(node, int):
+            return node
 
-        dir_sizes[cwd] = size
-        return size
+        dir_size = sum([dfs(prefix + k + "/", node[k]) for k in node])
+        dir_sizes[prefix] = dir_size
 
+        return dir_size
 
-    total_size("", fs)
-    del dir_sizes[""]
+    dfs("", fs["/"]) # recurse the whole FS from the root node
 
-    total = 0
-    for v in dir_sizes.values():
-        if v <= 100000:
-            total += v
+    return dir_sizes
 
-    return total
-
+# Part 1:
 fs = parse(rows)
-print(f"part 1: {part1(fs)}")
+directories = get_directory_sizes(fs)
+solution = sum([v for v in directories.values() if v <= 100000])
+print(f"Part 1: {solution}")
 
-def part2(fs: Dict[Any, Any]) -> int:
-    """Given a dict describing the fs, return the largest direce"""
-
-    # flat map of fullpath: total size
-    dir_sizes = {}
-
-    def total_size(cwd, dir: Union[Dict[Any, Any], int]):
-        
-        if isinstance(dir, int):
-            return dir
-        
-        size = 0
-        for subdir in dir.keys():
-            size += total_size(cwd + "/" + subdir, dir[subdir])
-
-        dir_sizes[cwd] = size
-        return size
-
-
-    total_size("", fs)
-    # weird duplication issue :shrug:
-    del dir_sizes[""]
-
-    total_size = dir_sizes["//"]
-    req = total_size - 40000000
-
-    return min([v for v in dir_sizes.values() if v >= req])
-
+# Part 2:
 fs = parse(rows)
-print(f"part2: {part2(fs)}")
+directories = get_directory_sizes(fs)
+required_size = directories[""] - 40000000
+solution = min([v for v in directories.values() if v >= required_size])
+print(f"Part 2: {solution}")
