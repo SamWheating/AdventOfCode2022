@@ -51,7 +51,7 @@ def get_directory_sizes(fs: Dict[str, Any]) -> Dict[str, int]:
 
         return dir_size
 
-    dfs("", fs["/"]) # recurse the whole FS from the root node
+    dfs("/", fs["/"]) # recurse the whole FS from the root node
 
     return dir_sizes
 
@@ -64,6 +64,6 @@ print(f"Part 1: {solution}")
 # Part 2:
 fs = parse(rows)
 directories = get_directory_sizes(fs)
-required_size = directories[""] - 40000000
+required_size = directories["/"] - 40000000
 solution = min([v for v in directories.values() if v >= required_size])
 print(f"Part 2: {solution}")
