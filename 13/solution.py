@@ -12,6 +12,15 @@ with open(filepath) as ifp:
     rows = [r for r in rows if r != ""]
 
 
+def tolist(p: Union[int, List]):
+    # Wrap and int as a List, leave a List as-is
+    if isinstance(p, List):
+        return p
+    if isinstance(p, int):
+        return [p]
+    raise Exception("Unexpected type: " + str(type(p)))
+
+
 # Use custom exceptions as a short-circuit out of a deeply recursive function
 class ValidPackets(Exception):
     pass
@@ -19,15 +28,9 @@ class ValidPackets(Exception):
 class InvalidPackets(Exception):
     pass
 
-def tolist(p: Union[int, List]):
-    if isinstance(p, List):
-        return p
-    if isinstance(p, int):
-        return [p]
-    raise "Unexpected type: " + str(type(p))
-    
-def validate_packets(l: List, r: List):
 
+def validate_packets(l: List, r: List):
+    # Wrap the recursive inspection and return based on exception raised
     try:
         inspect_packets(l, r)
     except ValidPackets:
@@ -35,13 +38,8 @@ def validate_packets(l: List, r: List):
     except InvalidPackets:
         return False
 
-    return True
-
-
-# Follows the convention:
-# Returning True -> Known Valid
-# Returning False -> Known False
-# Returning None -> More information required
+# Deeply inspect two packets (or subsection of packets)
+# If deemed valid / invalid, raise an exception to recurse all the way up
 def inspect_packets(l: List, r: List) -> bool:
 
     if isinstance(l, int) and isinstance(r, int):
@@ -64,7 +62,7 @@ def inspect_packets(l: List, r: List) -> bool:
         if len(l) == 0 and len(r) != 0:
             raise ValidPackets("left ran out of items first")
         
-    else:
+    else: # mixed case List + Int
         inspect_packets(tolist(l), tolist(r))
 
 
@@ -87,8 +85,6 @@ for i in range(0, len(rows), 2):
         score += (i//2 + 1)
 
 print(f"Part 1: {score}")
-
-
 
 rows.extend(["[[2]]", "[[6]]"])
 
