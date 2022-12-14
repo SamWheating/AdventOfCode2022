@@ -1,5 +1,6 @@
 import sys
 from typing import List, Union
+from functools import cmp_to_key
 
 if len(sys.argv) >= 2 and sys.argv[1] == "--test":
     print("Using test input")
@@ -29,10 +30,10 @@ class InvalidPackets(Exception):
     pass
 
 
-def validate_packets(l: List, r: List):
+def validate_packets(l: str, r: str):
     # Wrap the recursive inspection and return based on exception raised
     try:
-        inspect_packets(l, r)
+        inspect_packets(eval(l), eval(r))
     except ValidPackets:
         return True
     except InvalidPackets:
@@ -67,40 +68,36 @@ def inspect_packets(l: List, r: List) -> bool:
 
 
 # tests
-assert validate_packets([1,2,3], [4,5,6])
-assert not validate_packets([4,5,6],[1,2,3])
-
-assert validate_packets([1,2], [1,2,3])
-assert not validate_packets([1,2,3], [1,2])
-
-assert validate_packets([[1,2,3]], [[4,5,6]])
-
-assert validate_packets([[1],[2,3,4]], [[1],4])
+assert validate_packets("[1,2,3]", "[4,5,6]")
+assert not validate_packets("[4,5,6]","[1,2,3]")
+assert validate_packets("[1,2]", "[1,2,3]")
+assert not validate_packets("[1,2,3]", "[1,2]")
+assert validate_packets("[[1,2,3]]", "[[4,5,6]]")
+assert validate_packets("[[1],[2,3,4]]", "[[1],4]")
 
 score = 0
 for i in range(0, len(rows), 2):
-    p1 = eval(rows[i]) # eval will parse string to nested list
-    p2 = eval(rows[i+1])
+    p1 = rows[i] # eval will parse string to nested list
+    p2 = rows[i+1]
     if validate_packets(p1, p2):
-        score += (i//2 + 1)
+        score += (i//2 + 1) # the 1-based `index of the pair
 
 print(f"Part 1: {score}")
 
-rows.extend(["[[2]]", "[[6]]"])
-
-assert len(set(rows)) == len(rows)
-
 # Part 2
-matches = {row: 0 for row in rows}
-for row in rows:
-    for otherrow in [r for r in rows if r != row]:
-        p1 = eval(row)
-        p2 = eval(otherrow)
-        if validate_packets(p1,p2):
-            matches[row] += 1
 
-a = sorted(matches, key=lambda row: matches[row], reverse=True)
+DIVIDER_1 = "[[2]]"
+DIVIDER_2 = "[[6]]"
+rows.extend([DIVIDER_1, DIVIDER_2])
 
-solution = (a.index("[[2]]")+1) * (a.index("[[6]]")+1)
+def packet_comparator(l: str, r: str):
+    if validate_packets(l, r):
+        return -1
+    return 1
+
+a = sorted(rows, key=cmp_to_key(packet_comparator))
+
+# Now just find the dividers and adjust for 1-based indexing 
+solution = (a.index(DIVIDER_2)+1) * (a.index(DIVIDER_1)+1)
 
 print(f"Part 2: {solution}")
